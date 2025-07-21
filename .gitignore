@@ -1,0 +1,137 @@
+# Node.js dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Logs
+logs/
+*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Icon?
+Desktop.ini
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Build output
+dist/
+build/
+out/
+tmp/
+temp/
+.cache/
+.next/
+.nuxt/
+.svelte-kit/
+.storybook/
+.cypress/
+coverage/
+lib/
+lib-cov/
+*.tsbuildinfo
+
+# IDEs and editors
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.bak
+
+# Test output
+test-results/
+junit.xml
+*.lcov
+
+# Misc
+*.tgz
+*.zip
+*.tar
+*.gz
+*.rar
+*.7z
+*.log.[0-9]*
+*.pid
+*.seed
+*.pid.lock
+
+# Mac specific
+.AppleDouble
+.LSOverride
+
+# Windows specific
+$RECYCLE.BIN/
+*.lnk
+
+# Linux specific
+*~
+
+# Optional npm cache directory
+.npm/
+
+# Optional eslint cache
+.eslintcache
+
+# Optional stylelint cache
+.stylelintcache
+
+# Optional REPL history
+.node_repl_history
+
+# Optional coverage reports
+coverage/
+.nyc_output/
+
+# Optional build artifacts
+*.map
+
+# VS Code settings
+.vscode/
+
+# JetBrains IDEs
+.idea/
+
+# SASS cache
+.sass-cache/
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Yarn Integrity file
+.yarn-integrity
+
+# Parcel-bundler cache
+.cache/
+
+# Next.js build output
+.next/
+
+# Nuxt.js build output
+.nuxt/
+
+# SvelteKit build output
+.svelte-kit/
+
+# Storybook build output
+.storybook/
+
+# Cypress
+.cypress/
+
+# Playwright
+.playwright/
+
+# Local env files
+.local.env
