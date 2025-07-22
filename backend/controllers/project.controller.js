@@ -38,13 +38,6 @@ export const createProjectController = async(req, res) => {
             });
         }
         
-        if (error.code === 11000) { // MongoDB duplicate key error
-            return res.status(409).json({
-                success: false,
-                message: "A project with this name already exists"
-            });
-        }
-
         return res.status(500).json({
             success: false,
             message: "An error occurred while creating the project"
