@@ -1,8 +1,10 @@
 {
-  "name": "frontend",
+  "name": "codecraft-ai-frontend",
   "private": true,
   "version": "0.0.0",
+  "description": "CodeCraft AI - Frontend React application for collaborative development",
   "type": "module",
+  "keywords": ["codecraft", "ai", "frontend", "react", "collaboration"],
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -38,3 +40,4 @@
     "vite": "^7.0.4"
   }
 }
+

@@ -1,12 +1,12 @@
 {
-  "name": "backend",
+  "name": "codecraft-ai-backend",
   "version": "1.0.0",
-  "description": "",
+  "description": "CodeCraft AI - Backend API server with AI assistance and real-time collaboration",
   "main": "index.js",
   "scripts": {
     "dev": "nodemon server.js"
   },
-  "keywords": [],
+  "keywords": ["codecraft", "ai", "backend", "collaboration", "development"],
   "author": "",
   "license": "ISC",
   "type": "module",
@@ -26,3 +26,4 @@
     "socket.io": "^4.8.1"
   }
 }
+
