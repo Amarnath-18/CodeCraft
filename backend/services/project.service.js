@@ -90,7 +90,7 @@ export const addUserToProject = async (
   );
   await User.findByIdAndUpdate({_id:user._id},{
     $push:{
-        projects:updateProject._id,
+        projects:updatedProject._id,
     }
   });
 
@@ -283,5 +283,29 @@ export const getProjectStats = async (projectId) => {
     createdAt: project.createdAt,
     updatedAt: project.updatedAt,
   };
+};
+
+export const deleteProject = async (projectId, userId) => {
+  if (!projectId) throw new Error("Project ID is required");
+  if (!userId) throw new Error("User ID is required");
+
+  const project = await projectModel.findById(projectId);
+
+  if (!project) {
+    const error = new Error("Project not found");
+    error.name = "NotFoundError";
+    throw error;
+  }
+
+  // Check if user is an admin of the project
+  if (!project.isUserAdmin(userId)) {
+    const error = new Error("Only project admins can delete the project");
+    error.name = "AuthorizationError";
+    throw error;
+  }
+
+  await projectModel.findByIdAndDelete(projectId);
+
+  return true;
 };
 

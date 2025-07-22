@@ -19,6 +19,7 @@ const ProjectPage = () => {
   const location = useLocation();
   const { user } = useContext(UserContext);
   const [isSideBarOpen, setIsSideBarOpen] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   // Get project ID from location state
   const projectId = location.state?._id;
@@ -86,30 +87,9 @@ const ProjectPage = () => {
 
 
   return (
-    <main className="w-full h-full flex overflow-hidden">
-      <section className="relative min-w-96 h-[calc(100vh-4rem)] p-2 bg-blue-800 flex flex-col ">
-        <header className="flex p-2 rounded-2xl justify-between bg-blue-400">
-          <h2 className="font-bold text-white px-2">{currentProject?.name}</h2>
-          <button
-            onClick={() => setIsSideBarOpen(true)}
-            className="p-1 hover:bg-blue-500 cursor-pointer rounded-3xl transition-colors"
-            title="Manage project members"
-          >
-            <i className="ri-group-line"></i>
-          </button>
-        </header>
-
-        <ProjectChat
-          messages={messages}
-          messageText={messageText}
-          setMessageText={setMessageText}
-          onSendMessage={handleSendMessage}
-          currentUser={user}
-        />
-      </section>
-
-      {/* Right Panel - File Explorer and Main Content */}
-      <section className="right flex min-h-full grow">
+    <main className="w-full h-[calc(100vh-4rem)] flex overflow-hidden relative">
+      {/* Main Content Area - Full Width */}
+      <section className="flex h-full w-full">
         <FileExplorer
           fileTrees={fileTrees}
           onFileSelect={handleFileSelect}
@@ -119,31 +99,60 @@ const ProjectPage = () => {
         <div className="flex-1 flex flex-col bg-gray-50">
           {/* Top Controls */}
           <div className="bg-white border-b border-gray-200 p-3">
-            <ProjectRunner
-              onRunProject={runProject}
-              isRunning={isRunning}
-              runOutput={runOutput}
-              previewUrl={previewUrl}
-              showPreview={showPreview}
-              onTogglePreview={togglePreview}
-              onClosePreview={() => setShowPreview(false)}
-            />
+            <div className="flex items-center gap-4 flex-wrap">
+              {/* Chat toggle button */}
+              <button
+                onClick={() => setIsChatOpen(!isChatOpen)}
+                className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                title="Toggle chat"
+              >
+                <i className="ri-chat-3-line"></i>
+                <span className="hidden sm:inline">Chat</span>
+              </button>
+
+              {/* Project name */}
+              <h1 className="text-lg font-semibold text-gray-800">{currentProject?.name}</h1>
+
+              {/* Members button */}
+              <button
+                onClick={() => setIsSideBarOpen(true)}
+                className="p-2 hover:bg-gray-100 cursor-pointer rounded-lg transition-colors"
+                title="Manage project members"
+              >
+                <i className="ri-group-line text-gray-600"></i>
+              </button>
+
+              {/* Project Runner */}
+              <div className="ml-auto">
+                <ProjectRunner
+                  onRunProject={runProject}
+                  isRunning={isRunning}
+                  runOutput={runOutput}
+                  previewUrl={previewUrl}
+                  showPreview={showPreview}
+                  onTogglePreview={togglePreview}
+                  onClosePreview={() => setShowPreview(false)}
+                />
+              </div>
+            </div>
           </div>
 
           {/* Content Area */}
           <div className="flex-1 flex overflow-hidden">
-            {/* Code Editor */}
-            <div className="flex-1 flex flex-col">
-              <CodeEditor
-                currentFile={currFile}
-                onFileChange={handleFileChange}
-                onFileClose={() => handleFileSelect(null)}
-              />
-            </div>
+            {/* Code Editor - Hidden when preview is shown */}
+            {!showPreview && (
+              <div className="flex-1 flex flex-col">
+                <CodeEditor
+                  currentFile={currFile}
+                  onFileChange={handleFileChange}
+                  onFileClose={() => handleFileSelect(null)}
+                />
+              </div>
+            )}
 
-            {/* Preview Panel (when active) */}
+            {/* Preview Panel - Takes full width when active */}
             {showPreview && previewUrl && (
-              <div className="w-1/2 border-l border-gray-300 bg-white">
+              <div className="flex-1 bg-white">
                 <div className="h-full flex flex-col">
                   <div className="bg-gray-100 p-2 flex justify-between items-center border-b">
                     <span className="text-sm font-medium text-gray-700">
@@ -169,6 +178,39 @@ const ProjectPage = () => {
           </div>
         </div>
       </section>
+
+      {/* Chat Sidebar Overlay */}
+      {isChatOpen && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 z-40"
+            onClick={() => setIsChatOpen(false)}
+          />
+
+          {/* Chat Sidebar */}
+          <div className="fixed left-0 top-0 h-full w-96 bg-blue-800 z-50 flex flex-col shadow-xl">
+            <header className="flex p-4 justify-between bg-blue-400">
+              <h2 className="font-bold text-white">{currentProject?.name} - Chat</h2>
+              <button
+                onClick={() => setIsChatOpen(false)}
+                className="p-1 hover:bg-blue-500 cursor-pointer rounded-full transition-colors text-white"
+                title="Close chat"
+              >
+                <i className="ri-close-line"></i>
+              </button>
+            </header>
+
+            <ProjectChat
+              messages={messages}
+              messageText={messageText}
+              setMessageText={setMessageText}
+              onSendMessage={handleSendMessage}
+              currentUser={user}
+            />
+          </div>
+        </>
+      )}
 
       {/* Project Sidebar */}
       <ProjectSidebar

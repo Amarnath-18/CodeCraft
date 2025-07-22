@@ -65,6 +65,18 @@ const Home = () => {
     }
   }
 
+  const handleDeleteProject = async(projectId) => {
+    try {
+      const response = await axiosInstance.delete(`/project/delete/${projectId}`, { withCredentials: true });
+      if(response.data.success){
+        toast.success('Project deleted successfully!');
+        await getProjects();
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to delete project');
+    }
+  }
+
   useEffect(()=>{
     getProjects();
   },[])
@@ -128,6 +140,12 @@ const Home = () => {
                         className="px-3 py-1 text-xs bg-gray-100 text-gray-600 rounded-full hover:bg-gray-200 transition-colors"
                       >
                         Edit
+                      </button>
+                      <button 
+                        onClick={() => handleDeleteProject(project._id)}
+                        className="px-3 py-1 text-xs bg-red-100 text-red-600 rounded-full hover:bg-red-200 transition-colors"
+                      >
+                        Delete
                       </button>
                     </div>
                   </div>

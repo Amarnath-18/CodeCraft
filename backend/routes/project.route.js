@@ -1,6 +1,6 @@
 import express from 'express'
 import { authUser } from '../middlewares/auth.js';
-import { addUserToProjectController, createProjectController, getProjectByIdController, getProjectsController, updateProjectController, removeUserFromProjectController, updateUserRoleController, getProjectStatsController } from '../controllers/project.controller.js';
+import { addUserToProjectController, createProjectController, getProjectByIdController, getProjectsController, updateProjectController, removeUserFromProjectController, updateUserRoleController, getProjectStatsController, deleteProjectController } from '../controllers/project.controller.js';
 const router = express.Router();
 
 
@@ -12,4 +12,5 @@ router.delete('/removeUser/:projectId' , authUser , removeUserFromProjectControl
 router.put('/updateRole/:projectId' , authUser , updateUserRoleController);
 router.get('/stats/:projectId' , authUser , getProjectStatsController);
 router.get('/:projectId' , authUser , getProjectByIdController);
+router.delete('/delete/:projectId' , authUser , deleteProjectController);
 export default router;

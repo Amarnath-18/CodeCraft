@@ -74,7 +74,7 @@ const CodeEditor = ({ currentFile, onFileChange, onFileClose }) => {
           value={currentFile.contents}
           theme="vs-dark"
           options={{
-            readOnly: false,
+            readOnly: true,
             fontSize: 14,
             minimap: { enabled: false },
             scrollBeyondLastLine: false,
