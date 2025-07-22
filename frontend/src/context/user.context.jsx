@@ -17,7 +17,6 @@ const UserProvider = ({ children }) => {
                     setUser(null);
                 }
             } catch (error) {
-                console.log(error);
                 setUser(null);
             } finally {
                 setLoading(false);

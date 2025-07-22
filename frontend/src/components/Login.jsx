@@ -24,13 +24,11 @@ const Login = () => {
     try {
       const response = await axios.post('/user/login' , formdata , {withCredentials:true});
       if(response.data.success == true){
-        console.log(response.data);
         setUser(response.data.user);
         navigate('/');
         toast.success("Welcome..");
       }
     } catch (error) {
-      console.log(error);
       toast.error(error.response.data.message);
     }
   }

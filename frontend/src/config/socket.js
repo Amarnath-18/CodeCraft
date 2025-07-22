@@ -12,14 +12,6 @@ export const initializeSocket = (projectId) => {
       },
     });
   }
-   socketInstance.on("connect", () => {
-      console.log("✅ Connected to socket:", socketInstance.id);
-    });
-
-    socketInstance.on("connect_error", (err) => {
-
-      console.error("❌ Connection error:", err.message);
-    });
   return socketInstance;
 };
 
