@@ -11,6 +11,7 @@ import {
   sendMessage,
   disconnectSocket,
 } from "../config/socket"; // or your actual socket path
+import { getWebContainer } from "../config/webContainerInstance";
 
 const ProjectPage = () => {
   const location = useLocation();
@@ -23,6 +24,87 @@ const ProjectPage = () => {
   const messageEndRef = useRef();
   const [fileTrees, setFileTrees] = useState([]);
   const [currFile, setCurrFile] = useState(null);
+  const [webContainer, setWebContainer] = useState();
+
+  const [runOutput, setRunOutput] = useState("");
+  const [isRunning, setIsRunning] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState("");
+  const [showPreview, setShowPreview] = useState(false);
+
+  const runProject = async () => {
+    if (!webContainer || !fileTrees) return;
+    setIsRunning(true);
+    setRunOutput("");
+
+    let buildCommand, startCommand;
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].senderEmail === "@Ai") {
+        const parsed = extractTextFromJsonMarkdown(messages[i].text);
+        buildCommand = parsed.buildCommand;
+        startCommand = parsed.startCommand;
+        break;
+      }
+    }
+
+    try {
+      if (!webContainer.isMounted) {
+        await webContainer.mount(fileTrees);
+      }
+
+      // Listen for server events
+      webContainer.on('server-ready', (port, url) => {
+        setRunOutput((prev) => prev + `\n🌐 Server detected on port ${port}: ${url}\n`);
+        setPreviewUrl(url);
+        setShowPreview(true);
+      });
+
+      // Build command
+      if (buildCommand?.mainItem && Array.isArray(buildCommand.commands)) {
+        setRunOutput((prev) => prev + "\n=== Running build command ===\n");
+        const buildProcess = await webContainer.spawn(buildCommand.mainItem, buildCommand.commands);
+        
+        buildProcess.output.pipeTo(new WritableStream({
+          write(data) {
+            setRunOutput((prev) => prev + data);
+          }
+        }));
+        
+        await buildProcess.exit;
+      }
+
+      // Start command
+      if (startCommand?.mainItem && Array.isArray(startCommand.commands)) {
+        setRunOutput((prev) => prev + "\n=== Starting project ===\n");
+        const startProcess = await webContainer.spawn(startCommand.mainItem, startCommand.commands);
+        
+        startProcess.output.pipeTo(new WritableStream({
+          write(data) {
+            setRunOutput((prev) => prev + data);
+            
+            // Check if server started message appears
+            if (data.includes('Server is running on port')) {
+              setTimeout(async () => {
+                try {
+                  const url = await webContainer.url(3001);
+                  setRunOutput((prev) => prev + `\n🌐 Auto-detected server: ${url}\n`);
+                  setPreviewUrl(url);
+                  setShowPreview(true);
+                } catch (err) {
+                  console.log("Auto-detection failed:", err);
+                }
+              }, 2000);
+            }
+          }
+        }));
+      }
+    } catch (err) {
+      setRunOutput((prev) => prev + "\nError: " + err.message);
+    }
+
+    setIsRunning(false);
+  };
+
+
   const handleAddButton = async ({ userEmail, projectId }) => {
     try {
       const response = await axiosInstance.post("/project/addUserToPorject", {
@@ -86,12 +168,27 @@ const ProjectPage = () => {
 
     const socket = initializeSocket(currentProject._id);
     console.log("Project Message Calling");
-
+    if (!webContainer) {
+      async function startWebContainer() {
+        try {
+          const response = await getWebContainer();
+          setWebContainer(response);
+          console.log("WebContainer Started..");
+        } catch (error) {
+          console.log(error);
+        }
+      }
+      startWebContainer();
+    }
     const handleIncomingMessage = (msg) => {
       setMessages((prev) => [...prev, msg]);
       if (msg.senderEmail === "@Ai") {
         const { fileTree } = extractTextFromJsonMarkdown(msg.text);
-        if (fileTree) setFileTrees(fileTree);
+
+        if (fileTree) {
+          console.log(fileTree);
+          setFileTrees(fileTree);
+        }
       }
     };
 
@@ -102,10 +199,6 @@ const ProjectPage = () => {
       disconnectSocket();
     };
   }, [currentProject]);
-
-  useEffect(() => {
-    getProject(location.state._id);
-  }, [location.state]);
 
   async function loadMessages(projectId) {
     try {
@@ -180,45 +273,59 @@ const ProjectPage = () => {
             </div>
           </div>
         );
+      } else if (typeof value === "object" && !value.file) {
+        // Handle direct nested structure without 'directory' wrapper
+        return (
+          <div key={parentPath + name} className="ml-2 my-1">
+            <div className="font-bold text-base">{name}/</div>
+            <div className="ml-2">
+              {renderFileTree(value, parentPath + name + "/")}
+            </div>
+          </div>
+        );
       }
       return null;
     });
   };
 
   // Helper to update file content in nested file tree
-function updateFileContent(tree, filePath, newContent) {
-  const parts = filePath.split("/");
-  if (parts.length === 0) return tree;
-  const [current, ...rest] = parts;
-  if (rest.length === 0) {
-    // At file
-    if (tree[current] && tree[current].file) {
-      return {
-        ...tree,
-        [current]: {
-          ...tree[current],
-          file: {
-            ...tree[current].file,
-            contents: newContent,
+  function updateFileContent(tree, filePath, newContent) {
+    const parts = filePath.split("/");
+    if (parts.length === 0) return tree;
+    const [current, ...rest] = parts;
+    if (rest.length === 0) {
+      // At file
+      if (tree[current] && tree[current].file) {
+        return {
+          ...tree,
+          [current]: {
+            ...tree[current],
+            file: {
+              ...tree[current].file,
+              contents: newContent,
+            },
           },
-        },
-      };
+        };
+      }
+      return tree;
+    } else {
+      // In directory
+      if (tree[current] && tree[current].directory) {
+        return {
+          ...tree,
+          [current]: {
+            ...tree[current],
+            directory: updateFileContent(
+              tree[current].directory,
+              rest.join("/"),
+              newContent
+            ),
+          },
+        };
+      }
+      return tree;
     }
-    return tree;
-  } else {
-    // In directory
-    if (tree[current] && tree[current].directory) {
-      return {
-        ...tree,
-        [current]: {
-          ...tree[current],
-          directory: updateFileContent(tree[current].directory, rest.join("/"), newContent),
-        },
-      };
-    }
-    return tree;
   }
-}
 
   return (
     <main className="w-full h-full flex overflow-hidden">
@@ -242,11 +349,13 @@ function updateFileContent(tree, filePath, newContent) {
                   }`}
                 >
                   <div className="flex justify-center items-center p-1 gap-1">
-                    <img
-                      className="h-4 w-4 rounded-2xl"
-                      src={`https://api.dicebear.com/8.x/pixel-art/svg?seed=${msg.senderEmail}`}
-                      alt=""
-                    />
+                    <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                      <img
+                        className="h-4 w-4 rounded-2xl"
+                        src={`/api/avatar/${msg.senderEmail}`}
+                        alt="avatar"
+                      />
+                    </div>
                     <p className="text-sm opacity-55 ">{msg.senderEmail}</p>
                   </div>
 
@@ -295,6 +404,47 @@ function updateFileContent(tree, filePath, newContent) {
           {fileTrees && renderFileTree(fileTrees)}
         </div>
         <div className="code-editor flex-1 min-h-0 w-96">
+          <div className="p-2">
+            <div className="p-2">
+              <button
+                onClick={runProject}
+                disabled={isRunning}
+                className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 mr-2"
+              >
+                {isRunning ? "Running..." : "Run Project"}
+              </button>
+              {previewUrl && (
+                <button
+                  onClick={() => setShowPreview(!showPreview)}
+                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 mr-2"
+                >
+                  {showPreview ? "Hide Preview" : "Show Preview"}
+                </button>
+              )}
+            </div>
+            <pre className="bg-black text-green-400 p-2 mt-2 rounded max-h-40 overflow-auto text-xs">
+              {runOutput}
+            </pre>
+          </div>
+          {showPreview && previewUrl && (
+            <div className="mt-4 border rounded">
+              <div className="bg-gray-100 p-2 flex justify-between items-center">
+                <span className="text-sm font-medium">Preview: {previewUrl}</span>
+                <button
+                  onClick={() => setShowPreview(false)}
+                  className="text-gray-600 hover:text-gray-800"
+                >
+                  ✕
+                </button>
+              </div>
+              <iframe
+                src={previewUrl}
+                className="w-full h-96 border-0"
+                title="App Preview"
+                sandbox="allow-scripts allow-same-origin allow-forms"
+              />
+            </div>
+          )}
           {currFile && (
             <div className="code-editor-header flex justify-between items-center p-2 bg-slate-400">
               <h1 className="truncate text-base md:text-lg">{currFile.name}</h1>
@@ -302,9 +452,7 @@ function updateFileContent(tree, filePath, newContent) {
                 onClick={() => setCurrFile(null)}
                 className="p-2 rounded-full hover:bg-slate-300 transition"
                 title="Close"
-              >
-                <i className="ri-close-line text-xl text-gray-700"></i>
-              </button>
+              ></button>
             </div>
           )}
           {currFile && (
@@ -321,13 +469,12 @@ function updateFileContent(tree, filePath, newContent) {
                   scrollBeyondLastLine: false,
                   wordWrap: "on",
                 }}
-                onChange={(value) =>
-                    {
-                      setCurrFile((prev) => ({ ...prev, contents: value }));
-                      setFileTrees((prev) => updateFileContent(prev, currFile.name, value));
-                    }
-
-                }
+                onChange={(value) => {
+                  setCurrFile((prev) => ({ ...prev, contents: value }));
+                  setFileTrees((prev) =>
+                    updateFileContent(prev, currFile.name, value)
+                  );
+                }}
               />
             </pre>
           )}
@@ -393,8 +540,9 @@ function updateFileContent(tree, filePath, newContent) {
                   >
                     <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
                       <img
-                        src={`https://api.dicebear.com/8.x/pixel-art/svg?seed=${user?.user?.email}`}
-                        alt=""
+                        className="h-4 w-4 rounded-2xl"
+                        src={`/api/avatar/${user?.user?.email}`}
+                        alt="avatar"
                       />
                     </div>
                     <div className="flex-1">
