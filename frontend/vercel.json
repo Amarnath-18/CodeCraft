@@ -13,5 +13,11 @@
         }
       ]
     }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/avatar/:seed",
+      "destination": "https://api.dicebear.com/8.x/pixel-art/svg?seed=:seed"
+    }
   ]
 }
