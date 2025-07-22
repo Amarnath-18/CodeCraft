@@ -1,5 +1,5 @@
 import React from 'react'
-import AppRoutes from './Routes/appRoutes'
+import AppRoutes from './Routes/AppRoutes'
 import UserProvider from './context/user.context'
 import { Toaster } from 'react-hot-toast'
 
