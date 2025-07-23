@@ -5,8 +5,10 @@ let socketInstance = null;
 
 export const initializeSocket = (projectId) => {
   if (!socketInstance) {
-    socketInstance =  io(import.meta.env.VITE_API_URL_WS, {
+    socketInstance = io(import.meta.env.VITE_API_URL_WS, {
       withCredentials: true,
+      transports: ['websocket', 'polling'], // Add fallback
+      timeout: 20000,
       query: {
         projectId,
       },

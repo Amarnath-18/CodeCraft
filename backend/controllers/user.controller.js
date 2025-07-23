@@ -26,6 +26,7 @@ export const createUserController = async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      domain: process.env.NODE_ENV === "production" ? undefined : undefined,
     });
     return res.status(201).json({
       success: true,
@@ -68,6 +69,7 @@ export const loginUserController = async (req, res) => {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        domain: process.env.NODE_ENV === "production" ? undefined : undefined,
       })
       .status(200)
       .json({
