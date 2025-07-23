@@ -35,6 +35,7 @@ export const createUserController = async (req, res) => {
         _id: user._id,
         email: user.email,
       },
+      token:token,
     });
   } catch (error) {
     console.log(error);
@@ -79,6 +80,7 @@ export const loginUserController = async (req, res) => {
         _id: user._id,
         email: user.email,
       },
+      token:token,       // Added token to response for testing purposes
       });
   } catch (error) {
     console.log(error);

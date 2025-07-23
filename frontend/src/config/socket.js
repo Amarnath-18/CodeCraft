@@ -1,19 +1,27 @@
-// config/socket.js
 import { io } from "socket.io-client";
 
 let socketInstance = null;
 
 export const initializeSocket = (projectId) => {
-  if (!socketInstance) {
-    socketInstance = io(import.meta.env.VITE_API_URL_WS, {
-      withCredentials: true,
-      transports: ['websocket', 'polling'], // Add fallback
-      timeout: 20000,
-      query: {
-        projectId,
-      },
-    });
+  if (socketInstance && socketInstance.connected) {
+    return socketInstance;
   }
+  
+  if (socketInstance) {
+    socketInstance.disconnect();
+  }
+
+  const token = localStorage.getItem('token');
+  
+  socketInstance = io(import.meta.env.VITE_API_URL_WS, {
+    auth:{
+      token: token,
+    },
+    query: {
+      projectId,
+    },
+  });
+
   return socketInstance;
 };
 

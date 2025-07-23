@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useCallback, useRef } from "react";
 import {
   initializeSocket,
   receiveMessage,
@@ -10,29 +10,45 @@ import {
  * Custom hook for managing socket communication
  */
 export const useSocket = (projectId, onMessageReceived) => {
+  const socketRef = useRef(null);
+  const callbackRef = useRef(onMessageReceived);
+  
+  // Update callback ref when it changes
+  useEffect(() => {
+    callbackRef.current = onMessageReceived;
+  }, [onMessageReceived]);
+
   useEffect(() => {
     if (!projectId) return;
 
+    // Prevent multiple initializations
+    if (socketRef.current) return;
+
     const socket = initializeSocket(projectId);
+    socketRef.current = socket;
     console.log("Socket initialized for project:", projectId);
 
     const handleIncomingMessage = (msg) => {
-      onMessageReceived(msg);
+      callbackRef.current(msg);
     };
 
     receiveMessage("project-message", handleIncomingMessage);
 
     return () => {
-      socket.off("project-message", handleIncomingMessage);
-      disconnectSocket();
+      if (socketRef.current) {
+        socketRef.current.off("project-message", handleIncomingMessage);
+        disconnectSocket();
+        socketRef.current = null;
+      }
     };
-  }, [projectId, onMessageReceived]);
+  }, [projectId]);
 
-  const sendProjectMessage = (messageData) => {
+  const sendProjectMessage = useCallback((messageData) => {
     sendMessage("project-message", messageData);
-  };
+  }, []);
 
   return {
     sendProjectMessage,
   };
 };
+

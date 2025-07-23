@@ -1,8 +1,10 @@
 import React, { useContext, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from '../config/AxiosInstance';
+import axiosInstance from '../config/AxiosInstance';
 import { UserContext } from '../context/user.context';
 import toast from 'react-hot-toast';
+import Cookies from 'js-cookie';
+
 const Login = () => {
   const [formdata , setFormdata] = useState({
     email:"",
@@ -22,8 +24,11 @@ const Login = () => {
   const handleSubmit = async(e)=>{
     e.preventDefault();
     try {
-      const response = await axios.post('/user/login' , formdata , {withCredentials:true});
+      const response = await axiosInstance.post('/user/login', formdata);
       if(response.data.success == true){
+        // Store token in localStorage
+        localStorage.setItem('token', response.data.token);
+        
         setUser(response.data.user);
         navigate('/');
         toast.success("Welcome..");

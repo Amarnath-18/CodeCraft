@@ -11,10 +11,12 @@ const Navbar = () => {
   const handleLogout = async () => {
     try {
       await axiosInstance.post("/user/logout");
-      toast("loggedOut Successfull");
-      navigate("/login");
+      localStorage.removeItem('token'); // Clear token
       setUser(null);
+      navigate("/login");
+      toast("Logged out successfully");
     } catch (error) {
+      console.log(error);
       toast.error("Logout failed");
     }
   };

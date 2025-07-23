@@ -8,7 +8,7 @@ import jwt from "jsonwebtoken";
 import cookie from "cookie";
 import mongoose from "mongoose";
 import Project from "./models/project.model.js";
-import Message from "./models/message.model.js"; // import at top
+import Message from "./models/message.model.js";
 import { generateResult } from "./services/ai.service.js";
 
 
@@ -30,38 +30,33 @@ const io = new Server(server, {
 io.use(async (socket, next) => {
   try {
     const projectId = socket.handshake.query.projectId;
-    console.log("Incoming projectId:", projectId);
-
+    const authToken = socket.handshake.auth.token;
+    
+    
     if (!projectId || !mongoose.Types.ObjectId.isValid(projectId)) {
-      console.error("❌ Invalid or missing projectId");
-      return next(new Error("Invalid or missing projectId"));
+      return next(new Error("Invalid projectId"));
     }
 
-    const rawCookie = socket.handshake.headers?.cookie;
-    console.log("🔍 Raw cookie header:", rawCookie);
+    if (!authToken) {
+      return next(new Error("Auth token required"));
+    }
 
-    const cookies = cookie.parse(rawCookie || "");
-    const token = cookies.token;
-
+    const token = authToken;
+    
     if (!token) {
-      console.error("❌ Token not found in cookie");
-      return next(new Error("Token not found"));
+      return next(new Error("Token required"));
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    if (!decoded) {
-      console.error("❌ Token verification failed");
-      return next(new Error("Token invalid"));
-    }
-
     socket.project = await Project.findById(projectId).populate("users");
+    
     if (!socket.project) {
-      console.error("❌ Project not found");
       return next(new Error("Project not found"));
     }
+    console.log("Auth token:", authToken);
+
 
     socket.user = decoded;
-    console.log("✅ Socket authorized for user:", decoded.email);
     next();
   } catch (err) {
     console.error("Socket auth error:", err.message);
