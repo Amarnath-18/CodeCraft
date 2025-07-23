@@ -91,7 +91,13 @@ io.on("connection", (socket) => {
       if (isAiPresent) {
         const prompt = text.replace("@ai", " ");
         const aiResult = await generateResult(prompt);
-        // await Message.create({ text:aiResult, senderEmail:"Ai", projectId });
+
+        // Save AI message to database
+        await Message.create({
+          text: aiResult,
+          senderEmail: "@Ai",
+          projectId
+        });
 
         io.to(projectId).emit("project-message", {
           text: aiResult,

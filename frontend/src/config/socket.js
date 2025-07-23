@@ -16,7 +16,6 @@ export const initializeSocket = (projectId) => {
 };
 
 
-
 export const disconnectSocket = () => {
   if (socketInstance) {
     socketInstance.disconnect();

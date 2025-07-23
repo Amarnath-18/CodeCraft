@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { getWebContainer } from "../config/webContainerInstance";
-import { extractTextFromJsonMarkdown } from "../utils/projectUtils";
+import { extractTextFromJsonMarkdown, updateFileContent } from "../utils/projectUtils";
+import axios from "axios";
 
 /**
  * Custom hook for managing WebContainer functionality
  */
-export const useWebContainer = (messages) => {
+export const useWebContainer = (projectId, messages) => {
   const [webContainer, setWebContainer] = useState(null);
   const [fileTrees, setFileTrees] = useState([]);
   const [currFile, setCurrFile] = useState(null);
@@ -56,6 +57,31 @@ export const useWebContainer = (messages) => {
   const handleFileChange = (newContent) => {
     setCurrFile((prev) => ({ ...prev, contents: newContent }));
     setFileTrees((prev) => updateFileContent(prev, currFile.name, newContent));
+  };
+
+  // Save file to database
+  const handleFileSave = async (file) => {
+    if (!projectId || !file) return;
+
+    const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
+    try {
+      await axios.post(
+        `${API_BASE_URL}/api/file-edit/save`,
+        {
+          projectId,
+          filePath: file.path || file.name,
+          fileName: file.name,
+          content: file.contents
+        },
+        { withCredentials: true }
+      );
+
+      console.log("File saved successfully:", file.name);
+    } catch (error) {
+      console.error("Failed to save file:", error);
+      throw error;
+    }
   };
 
   // Helper to update file content in nested file tree
@@ -190,6 +216,7 @@ export const useWebContainer = (messages) => {
     showPreview,
     handleFileSelect,
     handleFileChange,
+    handleFileSave,
     runProject,
     togglePreview,
     setShowPreview,

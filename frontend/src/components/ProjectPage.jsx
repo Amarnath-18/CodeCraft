@@ -38,10 +38,11 @@ const ProjectPage = () => {
     showPreview,
     handleFileSelect,
     handleFileChange,
+    handleFileSave,
     runProject,
     togglePreview,
     setShowPreview,
-  } = useWebContainer(messages);
+  } = useWebContainer(projectId, messages);
 
   // Socket communication
   const handleMessageReceived = useCallback((msg) => {
@@ -146,6 +147,7 @@ const ProjectPage = () => {
                   currentFile={currFile}
                   onFileChange={handleFileChange}
                   onFileClose={() => handleFileSelect(null)}
+                  onFileSave={handleFileSave}
                 />
               </div>
             )}

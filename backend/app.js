@@ -4,6 +4,7 @@ import projectRoute from './routes/project.route.js'
 import cookieParser from 'cookie-parser';
 import messageRoute from './routes/message.route.js'
 import aiRoutes from './routes/ai.route.js'
+import fileEditRoute from './routes/fileEdit.route.js'
 import cors from 'cors';
 const app = express();
 app.use(express.json());
@@ -24,6 +25,7 @@ app.use(cors({
 app.use('/api/user' , userRoute);
 app.use('/api/project' , projectRoute);
 app.use('/api/messages' , messageRoute);
+app.use('/api/file-edit' , fileEditRoute);
 app.use('/api' , aiRoutes);
 
 
