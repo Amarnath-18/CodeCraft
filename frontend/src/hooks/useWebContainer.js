@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { getWebContainer } from "../config/webContainerInstance";
-import { extractTextFromJsonMarkdown, updateFileContent } from "../utils/projectUtils";
+import { extractTextFromJsonMarkdown } from "../utils/projectUtils";
 import axios from "axios";
 
 /**
