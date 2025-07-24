@@ -11,22 +11,28 @@ const Home = () => {
   const [formName , setFormName] = useState("");
   const [editFormName , setEditFormName] = useState("");
   const [editingProject , setEditingProject] = useState(null);
-  const {projects , setProjects , loading} = useContext(UserContext);
+  const {projects , setProjects , loading, user} = useContext(UserContext);
   const navigate = useNavigate();
   const getProjects = async () => {
     try {
       const response = await axiosInstance.get('/project/allProjects', { withCredentials: true });
-      // toast.success("Projects fetched successfully");
       console.log("Response data:", response.data);
       setProjects(response.data.projects || response.data);
     } catch (error) {
       console.log("Error fetching projects:", error);
-      // toast.error(error.response?.data?.message || 'Failed to fetch projects');
     }
   };
 
   const handleSubmit = async(e)=>{
     e.preventDefault();
+    
+    // Check if user is authenticated
+    if (!user) {
+      toast.error('Please login to create a project');
+      navigate('/login');
+      return;
+    }
+    
     try {
       const response = await axiosInstance.post("/project/create" , {name:formName} , {withCredentials:true});
       if(response.data.success){
@@ -36,6 +42,12 @@ const Home = () => {
         await getProjects();
       }
     } catch (error) {
+      // Handle 401 unauthorized specifically
+      if (error.response?.status === 401) {
+        toast.error('Please login to create a project');
+        navigate('/login');
+        return;
+      }
       toast.error(error.response?.data?.message || 'Failed to create project');
     }
   }

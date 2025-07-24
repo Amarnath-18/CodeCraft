@@ -184,9 +184,9 @@ const ProjectPage = () => {
       {/* Chat Sidebar Overlay */}
       {isChatOpen && (
         <>
-          {/* Backdrop */}
+          {/* Backdrop - Changed from black bg to blur */}
           <div
-            className="fixed inset-0 bg-black bg-opacity-50 z-40"
+            className="fixed inset-0 backdrop-blur-sm z-40"
             onClick={() => setIsChatOpen(false)}
           />
 

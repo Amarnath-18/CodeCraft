@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import axiosInstance from '../config/AxiosInstance';
 import { UserContext } from '../context/user.context';
 import toast from 'react-hot-toast';
-import Cookies from 'js-cookie';
 
 const Login = () => {
   const [formdata , setFormdata] = useState({
