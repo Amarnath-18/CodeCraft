@@ -8,7 +8,7 @@
           "value": "require-corp"
         },
         {
-          "key": "Cross-Origin-Opener-Policy", 
+          "key": "Cross-Origin-Opener-Policy",
           "value": "same-origin"
         }
       ]
@@ -18,6 +18,10 @@
     {
       "source": "/api/avatar/:seed",
       "destination": "https://api.dicebear.com/8.x/pixel-art/svg?seed=:seed"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
