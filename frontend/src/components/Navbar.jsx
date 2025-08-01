@@ -7,7 +7,7 @@ import toast from "react-hot-toast";
 const Navbar = () => {
   const navigate = useNavigate();
   const { user, loading, setUser } = useContext(UserContext);
-
+  
   const handleLogout = async () => {
     try {
       await axiosInstance.post("/user/logout");
@@ -55,7 +55,9 @@ const Navbar = () => {
               alt="avatar"
             />
           </div>
-
+          <p className="text-sm font-medium text-white">
+              {user?.email.split('@')[0] || "?"}
+            </p>
           <button
             onClick={handleLogout}
             className="px-4 py-2 cursor-pointer bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
