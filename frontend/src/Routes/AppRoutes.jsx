@@ -5,6 +5,7 @@ import Register from '../components/Register'
 import Login from '../components/Login'
 import ProjectPage from '../components/ProjectPage'
 import Layout from '../components/Layout'
+import Deployments from '../components/Deployments'
 const AppRoutes = () => {
   return (
     <BrowserRouter>
@@ -14,6 +15,7 @@ const AppRoutes = () => {
               <Route path='/login' element={<Login/>} />
               <Route path='/register' element={<Register/>} />
               <Route path='/project' element={<ProjectPage/>} />
+              <Route path='/deployments' element={<Deployments/>} />
             </Route>
         </Routes>
     </BrowserRouter>

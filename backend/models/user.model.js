@@ -18,7 +18,14 @@ const userSchema = mongoose.Schema({
             type:mongoose.Schema.Types.ObjectId,
             ref:"Project"
         }
-    ]
+    ],
+    deployments: [{
+        projectName: String,
+        platform: String,
+        url: String,
+        deploymentId: String,
+        deployedAt: { type: Date, default: Date.now }
+    }]
 });
 
 userSchema.statics.hashPassword = async function (password) {

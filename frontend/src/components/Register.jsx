@@ -36,7 +36,6 @@ const Register = () => {
         withCredentials: true,
       });
       if(response.data.success === true){
-        console.log(response.data);
         setUser(response.data.user)
         navigate('/');
       }

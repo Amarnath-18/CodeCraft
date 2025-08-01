@@ -125,6 +125,21 @@ const Home = () => {
                 Start building something amazing
               </p>
             </div>
+            {/* View Deployments Card */}
+            <div 
+              onClick={() => navigate('/deployments')}
+              className="group bg-gradient-to-br from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 rounded-xl p-6 cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-105 text-white min-h-[200px] flex flex-col justify-center items-center"
+            >
+              <div className="w-16 h-16 bg-white/20 group-hover:bg-white/30 rounded-full flex items-center justify-center mb-4 transition-all duration-300">
+                <i className="ri-rocket-line text-3xl text-white"></i>
+              </div>
+              <h3 className="text-xl font-bold mb-2">
+                View Deployments
+              </h3>
+              <p className="text-green-100 text-sm text-center">
+                Manage your live projects
+              </p>
+            </div>
           </div>
 
           {/* Existing Projects Section */}

@@ -8,6 +8,7 @@ import FileExplorer from "./FileExplorer";
 import CodeEditor from "./CodeEditor";
 import ProjectRunner from "./ProjectRunner";
 import ProjectSidebar from "./ProjectSidebar";
+import DeploymentModal from './DeploymentModal';
 
 // Import custom hooks
 import { useProjectData, useProjectMessages } from "../hooks/useProjectData";
@@ -21,6 +22,7 @@ const ProjectPage = () => {
   const [isSideBarOpen, setIsSideBarOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isAiThinking, setIsAiThinking] = useState(false);
+  const [showDeployModal, setShowDeployModal] = useState(false);
 
   // Get project ID from location state
   const projectId = location.state?._id;
@@ -134,7 +136,17 @@ const ProjectPage = () => {
               </button>
 
               {/* Project Runner */}
-              <div className="ml-auto">
+              <div className="ml-auto flex items-center gap-2">
+                {/* Add Deploy Button */}
+                <button
+                  onClick={() => setShowDeployModal(true)}
+                  className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
+                  title="Deploy project"
+                >
+                  <i className="ri-rocket-line"></i>
+                  <span className="hidden sm:inline">Deploy</span>
+                </button>
+
                 <ProjectRunner
                   onRunProject={runProject}
                   isRunning={isRunning}
@@ -232,6 +244,12 @@ const ProjectPage = () => {
         currentProject={currentProject}
         onAddUser={handleAddUser}
         onRemoveUser={handleUserRemove}
+      />
+      <DeploymentModal
+        isOpen={showDeployModal}
+        onClose={() => setShowDeployModal(false)}
+        projectName={currentProject?.name || 'my-project'}
+        fileTrees={fileTrees}
       />
     </main>
   );

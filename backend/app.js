@@ -6,6 +6,7 @@ import messageRoute from './routes/message.route.js'
 import aiRoutes from './routes/ai.route.js'
 import fileEditRoute from './routes/fileEdit.route.js'
 import cors from 'cors';
+import deploymentRoute from './routes/deployment.route.js'
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({extended:true}));
@@ -27,6 +28,7 @@ app.use('/api/project' , projectRoute);
 app.use('/api/messages' , messageRoute);
 app.use('/api/file-edit' , fileEditRoute);
 app.use('/api' , aiRoutes);
+app.use('/api/deploy', deploymentRoute);
 
 
 app.get('/' , (req , res)=>{
