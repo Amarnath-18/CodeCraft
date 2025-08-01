@@ -20,6 +20,7 @@ const ProjectPage = () => {
   const { user } = useContext(UserContext);
   const [isSideBarOpen, setIsSideBarOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isAiThinking, setIsAiThinking] = useState(false);
 
   // Get project ID from location state
   const projectId = location.state?._id;
@@ -46,6 +47,9 @@ const ProjectPage = () => {
 
   // Socket communication
   const handleMessageReceived = useCallback((msg) => {
+    if (msg.senderEmail === "@Ai") {
+      setIsAiThinking(false);
+    }
     addMessage(msg);
     if (msg.senderEmail === "@Ai") {
       const { fileTree } = extractTextFromJsonMarkdown(msg.text);
@@ -60,8 +64,9 @@ const ProjectPage = () => {
   // Handle sending messages
   const handleSendMessage = () => {
     if (!messageText.trim()) return;
-    console.log("Send Message calling");
-
+    
+    const isAiMessage = messageText.includes("@ai");
+    
     sendProjectMessage({
       text: messageText.trim(),
       senderEmail: user.email,
@@ -72,6 +77,11 @@ const ProjectPage = () => {
       text: messageText.trim(),
       senderEmail: user.email,
     });
+
+    // Set thinking state if AI is mentioned
+    if (isAiMessage) {
+      setIsAiThinking(true);
+    }
 
     clearMessageText();
   };
@@ -209,6 +219,7 @@ const ProjectPage = () => {
               setMessageText={setMessageText}
               onSendMessage={handleSendMessage}
               currentUser={user}
+              isAiThinking={isAiThinking}
             />
           </div>
         </>

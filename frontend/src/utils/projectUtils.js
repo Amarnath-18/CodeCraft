@@ -14,8 +14,6 @@ export const extractTextFromJsonMarkdown = (input) => {
 
   try {
     const parsed = JSON.parse(match[1]);
-    console.log(parsed);
-
     return {
       text: parsed.text || "",
       fileTree: parsed.fileTree || null,
