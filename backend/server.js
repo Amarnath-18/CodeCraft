@@ -11,20 +11,20 @@ import Project from "./models/project.model.js";
 import Message from "./models/message.model.js";
 import { generateResult } from "./services/ai.service.js";
 
-// Add before Socket.io initialization
-app.set('trust proxy', 1);
 
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:5173", "https://codecraft-ai-dusky.vercel.app"],
+    origin: [
+      "http://localhost:5173", 
+      "https://codecraft-ai-dusky.vercel.app",
+      "https://codecraft-ai-f730.onrender.com"
+    ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
+    exposedHeaders: ["Set-Cookie"],
   },
-  allowRequest: (req, callback) => {
-    // Allow all origins in production for now
-    callback(null, true);
-  }
 });
 
 io.use(async (socket, next) => {
