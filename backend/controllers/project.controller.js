@@ -175,8 +175,7 @@ export const getProjectByIdController = async(req , res)=>{
         }
 
         // Check if user has access to this project
-        
-        const hasAccess = project.users.some(u => u.user._id.toString() === userId);
+        const hasAccess = project.users.some(u => u.user && u.user._id && u.user._id.toString() === userId);
         if (!hasAccess) {
             return res.status(403).json({
                 success: false,
