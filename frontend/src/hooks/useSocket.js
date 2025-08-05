@@ -20,13 +20,23 @@ export const useSocket = (projectId, onMessageReceived) => {
 
   useEffect(() => {
     if (!projectId) return;
-
-    // Prevent multiple initializations
     if (socketRef.current) return;
 
     const socket = initializeSocket(projectId);
     socketRef.current = socket;
-    console.log("Socket initialized for project:", projectId);
+    
+    // Add connection debugging
+    socket.on('connect', () => {
+      console.log('✅ Socket connected:', socket.id);
+    });
+    
+    socket.on('connect_error', (error) => {
+      console.error('❌ Socket connection error:', error);
+    });
+    
+    socket.on('disconnect', (reason) => {
+      console.log('🔌 Socket disconnected:', reason);
+    });
 
     const handleIncomingMessage = (msg) => {
       callbackRef.current(msg);
@@ -51,4 +61,5 @@ export const useSocket = (projectId, onMessageReceived) => {
     sendProjectMessage,
   };
 };
+
 
