@@ -12,26 +12,17 @@ export const initializeSocket = (projectId) => {
   }
 
   const token = localStorage.getItem('token');
-  
   socketInstance = io(import.meta.env.VITE_API_URL_WS, {
     auth: {
       token: token,
     },
     query: {
       projectId,
-    },
-    transports: ['polling', 'websocket'], // Try polling first in production
-    upgrade: true,
-    timeout: 20000,
-    forceNew: false,
-    reconnection: true,
-    reconnectionDelay: 1000,
-    reconnectionAttempts: 5
+    }
   });
 
   return socketInstance;
 };
-
 
 export const disconnectSocket = () => {
   if (socketInstance) {

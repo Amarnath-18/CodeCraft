@@ -36,6 +36,7 @@ const Register = () => {
         withCredentials: true,
       });
       if(response.data.success === true){
+      localStorage.setItem('token', response.data.token);
         setUser(response.data.user)
         navigate('/');
       }

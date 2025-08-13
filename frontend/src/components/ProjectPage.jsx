@@ -97,7 +97,9 @@ const ProjectPage = () => {
     );
   }
 
-
+  if(!projectId) {
+    return ;
+  }
 
   return (
     <main className="w-full h-[calc(100vh-4rem)] flex overflow-hidden relative">

@@ -5,7 +5,6 @@ import http from "http";
 import connectDB from "./db/db.js";
 import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
-import cookie from "cookie";
 import mongoose from "mongoose";
 import Project from "./models/project.model.js";
 import Message from "./models/message.model.js";

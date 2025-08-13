@@ -25,7 +25,11 @@ const userSchema = mongoose.Schema({
         url: String,
         deploymentId: String,
         deployedAt: { type: Date, default: Date.now }
-    }]
+    }],
+    vercelToken: {
+        type: String,
+        select: false // Don't include in regular queries for security
+    }
 });
 
 userSchema.statics.hashPassword = async function (password) {

@@ -1,15 +1,36 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import axiosInstance from '../config/AxiosInstance';
 import toast from 'react-hot-toast';
 
 const DeploymentModal = ({ isOpen, onClose, projectName, fileTrees }) => {
   const [deploying, setDeploying] = useState(false);
-  const [vercelToken, setVercelToken] = useState('');
   const [deploymentResult, setDeploymentResult] = useState(null);
+  const [hasVercelToken, setHasVercelToken] = useState(false);
+  const [checkingToken, setCheckingToken] = useState(true);
+
+  useEffect(() => {
+    if (isOpen) {
+      checkVercelToken();
+    }
+  }, [isOpen]);
+
+  const checkVercelToken = async () => {
+    try {
+      const response = await axiosInstance.get('/user/vercel-token');
+      if (response.data.success) {
+        setHasVercelToken(response.data.hasToken);
+      }
+    } catch (error) {
+      console.error('Failed to check Vercel token:', error);
+      setHasVercelToken(false);
+    } finally {
+      setCheckingToken(false);
+    }
+  };
 
   const handleDeploy = async () => {
-    if (!vercelToken.trim()) {
-      toast.error('Please enter your Vercel token');
+    if (!hasVercelToken) {
+      toast.error('Please add your Vercel token first');
       return;
     }
 
@@ -17,8 +38,7 @@ const DeploymentModal = ({ isOpen, onClose, projectName, fileTrees }) => {
     try {
       const response = await axiosInstance.post('/deploy/vercel', {
         projectName,
-        fileTrees,
-        vercelToken
+        fileTrees
       });
 
       if (response.data.success) {
@@ -68,36 +88,46 @@ const DeploymentModal = ({ isOpen, onClose, projectName, fileTrees }) => {
           </div>
         ) : (
           <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                Vercel Token
-              </label>
-              <input
-                type="password"
-                value={vercelToken}
-                onChange={(e) => setVercelToken(e.target.value)}
-                placeholder="Enter your Vercel API token"
-                className="w-full p-3 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Get your token from{' '}
-                <a 
-                  href="https://vercel.com/account/tokens" 
-                  target="_blank" 
-                  className="text-blue-500 underline"
+            {checkingToken ? (
+              <div className="text-center py-4">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                <p className="text-gray-600">Checking Vercel token...</p>
+              </div>
+            ) : !hasVercelToken ? (
+              <div className="text-center py-4">
+                <div className="text-yellow-600 text-lg mb-2">⚠️</div>
+                <p className="text-gray-600 mb-4">
+                  No Vercel token found. Please add your Vercel token to deploy.
+                </p>
+                <button
+                  onClick={() => {
+                    onClose();
+                    // Redirect to deployments page where they can add token
+                    window.location.href = '/deployments';
+                  }}
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
                 >
-                  Vercel Settings
-                </a>
-              </p>
-            </div>
-            
-            <button
-              onClick={handleDeploy}
-              disabled={deploying}
-              className="w-full p-3 bg-black text-white rounded hover:bg-gray-800 disabled:opacity-50"
-            >
-              {deploying ? '🚀 Deploying...' : '🚀 Deploy to Vercel'}
-            </button>
+                  Add Vercel Token
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="text-center py-4">
+                  <div className="text-green-600 text-lg mb-2">✅</div>
+                  <p className="text-gray-600 mb-4">
+                    Ready to deploy <strong>{projectName}</strong> to Vercel
+                  </p>
+                </div>
+                
+                <button
+                  onClick={handleDeploy}
+                  disabled={deploying}
+                  className="w-full p-3 bg-black text-white rounded hover:bg-gray-800 disabled:opacity-50"
+                >
+                  {deploying ? '🚀 Deploying...' : '🚀 Deploy to Vercel'}
+                </button>
+              </div>
+            )}
           </div>
         )}
         

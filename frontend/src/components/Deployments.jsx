@@ -5,10 +5,26 @@ import toast from 'react-hot-toast';
 const Deployments = () => {
   const [deployments, setDeployments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [hasVercelToken, setHasVercelToken] = useState(false);
+  const [showTokenModal, setShowTokenModal] = useState(false);
+  const [vercelToken, setVercelToken] = useState('');
+  const [deletingDeployment, setDeletingDeployment] = useState(null);
 
   useEffect(() => {
     fetchDeployments();
+    checkVercelToken();
   }, []);
+
+  const checkVercelToken = async () => {
+    try {
+      const response = await axiosInstance.get('/user/vercel-token');
+      if (response.data.success) {
+        setHasVercelToken(response.data.hasToken);
+      }
+    } catch (error) {
+      console.error('Failed to check Vercel token:', error);
+    }
+  };
 
   const fetchDeployments = async () => {
     try {
@@ -21,6 +37,60 @@ const Deployments = () => {
       console.error(error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const saveVercelToken = async () => {
+    try {
+      const response = await axiosInstance.post('/user/vercel-token', {
+        vercelToken: vercelToken
+      });
+      
+      if (response.data.success) {
+        setHasVercelToken(true);
+        setShowTokenModal(false);
+        setVercelToken('');
+        toast.success('Vercel token saved successfully');
+      }
+    } catch (error) {
+      toast.error('Failed to save Vercel token');
+      console.error(error);
+    }
+  };
+
+  const deleteVercelToken = async () => {
+    try {
+      const response = await axiosInstance.delete('/user/vercel-token');
+      
+      if (response.data.success) {
+        setHasVercelToken(false);
+        toast.success('Vercel token deleted successfully');
+      }
+    } catch (error) {
+      toast.error('Failed to delete Vercel token');
+      console.error(error);
+    }
+  };
+
+  const deleteDeployment = async (deploymentId) => {
+    if (!window.confirm('Are you sure you want to delete this deployment?')) {
+      return;
+    }
+
+    setDeletingDeployment(deploymentId);
+    
+    try {
+      const response = await axiosInstance.delete(`/deploy/vercel/${deploymentId}`);
+      
+      if (response.data.success) {
+        setDeployments(deployments.filter(d => d.deploymentId !== deploymentId));
+        toast.success('Deployment deleted successfully');
+      }
+    } catch (error) {
+      toast.error('Failed to delete deployment');
+      console.error(error);
+    } finally {
+      setDeletingDeployment(null);
     }
   };
 
@@ -71,9 +141,36 @@ const Deployments = () => {
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">🚀 My Deployments</h1>
-          <p className="text-gray-600">Manage and view all your deployed projects</p>
+        <div className="mb-8 flex justify-between items-start">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">🚀 My Deployments</h1>
+            <p className="text-gray-600">Manage and view all your deployed projects</p>
+          </div>
+          
+          <div className="flex items-center gap-4">
+            {hasVercelToken ? (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-green-600 flex items-center gap-1">
+                  <i className="ri-check-line"></i>
+                  Vercel token configured
+                </span>
+                <button
+                  onClick={deleteVercelToken}
+                  className="px-3 py-1 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors"
+                >
+                  Remove Token
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setShowTokenModal(true)}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+              >
+                <i className="ri-key-line"></i>
+                Add Vercel Token
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Stats Cards */}
@@ -175,6 +272,19 @@ const Deployments = () => {
                       >
                         <i className="ri-file-copy-line"></i>
                       </button>
+                      
+                      <button
+                        onClick={() => deleteDeployment(deployment.deploymentId)}
+                        disabled={deletingDeployment === deployment.deploymentId}
+                        className="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        title="Delete Deployment"
+                      >
+                        {deletingDeployment === deployment.deploymentId ? (
+                          <i className="ri-loader-4-line animate-spin"></i>
+                        ) : (
+                          <i className="ri-delete-bin-line"></i>
+                        )}
+                      </button>
                     </div>
                   </div>
                   
@@ -189,6 +299,64 @@ const Deployments = () => {
           </div>
         )}
       </div>
+      
+      {/* Vercel Token Modal */}
+      {showTokenModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Add Vercel Token</h3>
+              <button
+                onClick={() => setShowTokenModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <i className="ri-close-line text-xl"></i>
+              </button>
+            </div>
+            
+            <div className="mb-4">
+              <p className="text-sm text-gray-600 mb-2">
+                Enter your Vercel API token to enable deployment management.
+              </p>
+              <p className="text-xs text-gray-500 mb-4">
+                You can get your token from{' '}
+                <a 
+                  href="https://vercel.com/account/tokens" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:underline"
+                >
+                  Vercel Settings
+                </a>
+              </p>
+              
+              <input
+                type="password"
+                value={vercelToken}
+                onChange={(e) => setVercelToken(e.target.value)}
+                placeholder="Enter your Vercel token"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowTokenModal(false)}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={saveVercelToken}
+                disabled={!vercelToken.trim()}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Save Token
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from 'react'
+import React, { useContext, useEffect, useCallback } from 'react'
 import { useState } from 'react'
 import axiosInstance from '../config/AxiosInstance';
 import toast from 'react-hot-toast';
@@ -8,12 +8,14 @@ import { UserContext } from '../context/user.context';
 const Home = () => {
   const [isModelOpen , setIsModalOpen] = useState(false);
   const [isEditModalOpen , setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen , setIsDeleteModalOpen] = useState(false);
   const [formName , setFormName] = useState("");
   const [editFormName , setEditFormName] = useState("");
   const [editingProject , setEditingProject] = useState(null);
+  const [deletingProject , setDeletingProject] = useState(null);
   const {projects , setProjects , loading, user} = useContext(UserContext);
   const navigate = useNavigate();
-  const getProjects = async () => {
+  const getProjects = useCallback(async () => {
     try {
       const response = await axiosInstance.get('/project/allProjects', { withCredentials: true });
       console.log("Response data:", response.data);
@@ -21,7 +23,7 @@ const Home = () => {
     } catch (error) {
       console.log("Error fetching projects:", error);
     }
-  };
+  }, [setProjects]);
 
   const handleSubmit = async(e)=>{
     e.preventDefault();
@@ -77,21 +79,37 @@ const Home = () => {
     }
   }
 
-  const handleDeleteProject = async(projectId) => {
+  const handleDeleteProject = async(projectId, projectName) => {
+    // Open confirmation modal
+    setDeletingProject({ id: projectId, name: projectName });
+    setIsDeleteModalOpen(true);
+  }
+
+  const confirmDeleteProject = async() => {
+    if (!deletingProject) return;
+
     try {
-      const response = await axiosInstance.delete(`/project/delete/${projectId}`, { withCredentials: true });
+      const response = await axiosInstance.delete(`/project/delete/${deletingProject.id}`, { withCredentials: true });
       if(response.data.success){
+        // Update projects state locally for immediate UI update
+        setProjects(prevProjects => prevProjects.filter(project => project._id !== deletingProject.id));
         toast.success('Project deleted successfully!');
-        await getProjects();
+        setIsDeleteModalOpen(false);
+        setDeletingProject(null);
       }
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to delete project');
     }
   }
 
+  const cancelDeleteProject = () => {
+    setIsDeleteModalOpen(false);
+    setDeletingProject(null);
+  }
+
   useEffect(()=>{
     getProjects();
-  },[])
+  },[getProjects])
 
     
     if(loading) return (
@@ -169,7 +187,7 @@ const Home = () => {
                         Edit
                       </button>
                       <button 
-                        onClick={() => handleDeleteProject(project._id)}
+                        onClick={() => handleDeleteProject(project._id, project.name)}
                         className="px-3 py-1 text-xs bg-red-100 text-red-600 rounded-full hover:bg-red-200 transition-colors"
                       >
                         Delete
@@ -285,6 +303,53 @@ const Home = () => {
                     </button>
                   </div>
                 </form>
+              </div>
+            </div>
+          )}
+
+          {/* Delete Confirmation Modal */}
+          {isDeleteModalOpen && (
+            <div className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+              <div className="bg-white p-8 rounded-2xl shadow-2xl max-w-md w-full transform transition-all animate-in slide-in-from-bottom-4 duration-300">
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-2xl font-bold text-red-600">Delete Project</h2>
+                  <button
+                    onClick={cancelDeleteProject}
+                    className="p-2 hover:bg-gray-100 rounded-full transition-colors duration-200"
+                  >
+                    <i className="ri-close-line text-xl text-gray-500"></i>
+                  </button>
+                </div>
+                
+                <div className="mb-6">
+                  <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i className="ri-delete-bin-line text-red-600 text-2xl"></i>
+                  </div>
+                  <p className="text-gray-700 text-center mb-2">
+                    Are you sure you want to delete the project
+                  </p>
+                  <p className="text-gray-900 font-semibold text-center mb-2">
+                    "{deletingProject?.name}"?
+                  </p>
+                  <p className="text-red-600 text-sm text-center">
+                    This action cannot be undone and all project data will be permanently lost.
+                  </p>
+                </div>
+                
+                <div className="flex justify-end gap-3 pt-4">
+                  <button
+                    onClick={cancelDeleteProject}
+                    className="px-6 py-3 border border-gray-300 rounded-xl hover:bg-gray-50 transition duration-200 font-medium text-gray-700"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={confirmDeleteProject}
+                    className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl shadow-md transition duration-200 font-medium"
+                  >
+                    Delete Project
+                  </button>
+                </div>
               </div>
             </div>
           )}
